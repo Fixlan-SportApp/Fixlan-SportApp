@@ -1,0 +1,35 @@
+@media (min-width: 768px) {
+
+    .sidebar .nav-item .collapse .collapse-inner .collapse-item,
+    .sidebar .nav-item .collapsing .collapse-inner .collapse-item {
+        color: #ffffff;
+    }
+
+    .sidebar .nav-item .collapse .collapse-inner .collapse-item:hover,
+    .sidebar .nav-item .collapsing .collapse-inner .collapse-item:hover {
+        background-color: transparent;
+    }
+}
+
+
+.nav-item.active {
+    font-weight: 800;
+    color: white;
+}
+
+.sidebar-dark .nav-item.active .nav-link i {
+    color: hsl(0, 0%, 100%);
+}
+
+.collapse-item{
+    cursor: pointer;
+}
+
+a.collapse-item:hover{
+    background-color: aqua;
+}
+
+.i-afip {
+  background: url(../icons/afip.png);
+  
+}
