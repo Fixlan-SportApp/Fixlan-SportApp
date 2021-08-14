@@ -28,7 +28,7 @@
     function get_error($id)
     {
         include 'db.php';
-        $error = mysqli_fetch_array(mysqli_query($conexion, "SELECT * FROM sportapp.tb_error WHERE id = '" . $id . "'"));
+        $error = mysqli_fetch_array(mysqli_query($conexion, "SELECT * FROM {$array_ini['database']}.tb_error WHERE id = '" . $id . "'"));
         return $error;
     }
 
@@ -62,7 +62,7 @@
         $inicio = date('Ymd', strtotime($fecini));
         $fin = date('Ymd', strtotime($fecfin));
         $tabla = "";
-        $r = mysqli_query($conexion, "SELECT a.a_fecha, a.a_categoria, a.a_concepto, b.u_usuario FROM " . get_db() . ".auditoria AS a INNER JOIN sportapp.tb_usuario AS b ON a.a_usuario = b.id WHERE a.a_fecha BETWEEN '" . $inicio . "' AND '" . $fin . "'");
+        $r = mysqli_query($conexion, "SELECT a.a_fecha, a.a_categoria, a.a_concepto, b.u_usuario FROM " . get_db() . ".auditoria AS a INNER JOIN {$array_ini['database']}.tb_usuario AS b ON a.a_usuario = b.id WHERE a.a_fecha BETWEEN '" . $inicio . "' AND '" . $fin . "'");
         while ($f = mysqli_fetch_array($r)) {
             $tabla .= "<tr>";
             $tabla .= "<td>" . $f[0]->format('d/m/Y H:i:s') . "</td>";
@@ -83,7 +83,7 @@
     function modulo_habilitado($modulo)
     {
         include 'db.php';
-        $json_modulos = mysqli_fetch_array(mysqli_query($conexion, "SELECT a.c_modulos FROM sportapp.tb_club AS a WHERE a.c_db = '" . get_db() . "'"));
+        $json_modulos = mysqli_fetch_array(mysqli_query($conexion, "SELECT a.c_modulos FROM {$array_ini['database']}.tb_club AS a WHERE a.c_db = '" . get_db() . "'"));
         $modulos_habilitados = json_decode($json_modulos[0], true);
         if (in_array($modulo, $modulos_habilitados)) {
             return true;
@@ -125,14 +125,14 @@
     function get_nombre_usuario()
     {
         include 'db.php';
-        $nombre = mysqli_fetch_array(mysqli_query($conexion, "SELECT a.u_nombre FROM sportapp.tb_usuario AS a WHERE a.u_usuario = '" . get_usuario() . "'"));
+        $nombre = mysqli_fetch_array(mysqli_query($conexion, "SELECT a.u_nombre FROM {$array_ini['database']}.tb_usuario AS a WHERE a.u_usuario = '" . get_usuario() . "'"));
         return $nombre[0];
     }
 
     function get_token($usuario)
     {
         include 'db.php';
-        $sql = "SELECT a.u_token FROM sportapp.tb_usuario AS a WHERE a.u_usuario = '" . $usuario . "'";
+        $sql = "SELECT a.u_token FROM {$array_ini['database']}.tb_usuario AS a WHERE a.u_usuario = '" . $usuario . "'";
         $count = mysqli_fetch_array(mysqli_query($conexion, $sql));
         return $count[0];
     }
@@ -142,15 +142,14 @@
         include 'db.php';
         $length = 50;
         $token = bin2hex(random_bytes($length));
-        mysqli_query($conexion, "UPDATE sportapp.tb_usuario SET u_token = '" . $token . "' WHERE u_usuario = '" . $usuario . "'");
+        mysqli_query($conexion, "UPDATE {$array_ini['database']}.tb_usuario SET u_token = '" . $token . "' WHERE u_usuario = '" . $usuario . "'");
         $_SESSION['SVCGE_TOKEN'] = $token;
     }
 
     function get_login($usuario, $password)
     {
         include 'db.php';
-        $sql = "SELECT COUNT(a.id) FROM sportapp.tb_usuario AS a WHERE a.u_usuario = '" . $usuario . "' AND a.u_password = '" . md5($password) . "' AND a.u_estado = 'HABILITADO'";
-        consola($sql);
+        $sql = "SELECT COUNT(a.id) FROM {$array_ini['database']}.tb_usuario AS a WHERE a.u_usuario = '" . $usuario . "' AND a.u_password = '" . md5($password) . "' AND a.u_estado = 'HABILITADO'";
         $count = mysqli_fetch_array(mysqli_query($conexion, $sql));
         return $count[0];
     }
@@ -158,7 +157,7 @@
     function get_db_usuario($usuario)
     {
         include 'db.php';
-        $sql = "SELECT b.c_db FROM sportapp.tb_usuario AS a INNER JOIN sportapp.tb_club AS b ON a.u_club = b.id WHERE a.u_usuario = '" . $usuario . "' AND a.u_estado = 'HABILITADO'";
+        $sql = "SELECT b.c_db FROM {$array_ini['database']}.tb_usuario AS a INNER JOIN {$array_ini['database']}.tb_club AS b ON a.u_club = b.id WHERE a.u_usuario = '" . $usuario . "' AND a.u_estado = 'HABILITADO'";
         $count = mysqli_fetch_array(mysqli_query($conexion, $sql));
         return $count[0];
     }
@@ -171,7 +170,7 @@
     function get_id_usuario()
     {
         include 'db.php';
-        $id = mysqli_fetch_array(mysqli_query($conexion, "SELECT id FROM sportapp.tb_usuario WHERE u_usuario = '" . get_usuario() . "'"));
+        $id = mysqli_fetch_array(mysqli_query($conexion, "SELECT id FROM {$array_ini['database']}.tb_usuario WHERE u_usuario = '" . get_usuario() . "'"));
         return $id[0];
     }
 }
@@ -1707,6 +1706,7 @@
         }
         return $tabla;
     }
+    
 }
 
 /* LOTES */ {

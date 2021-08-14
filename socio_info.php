@@ -1,5 +1,9 @@
 <?php $titulo = "Informaci&oacute;n de Socio"; ?>
-<?php include 'assets/php/header.php'; ?>
+<?php 
+    include 'assets/php/header.php';
+    include('assets/vendor/phpqrcode/qrlib.php');
+    include 'assets/php/qr.php';
+?>
 
 <?php
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
@@ -121,6 +125,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 <hr>
 <div class="row mb-5">
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-3">
+        <div class="card shadow mb-3">
+            <div class="card-header py-3">
+                <p class="text-primary m-0 font-weight-bold">QR</p>
+            </div>
+            <div class="card-body">
+                <div class="form-row text-center mb-4">
+                    <div class="col">
+                        
+                        <?php echo QR::generate($socio['s_documento']); ?>
+
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="card shadow mb-3">
             <div class="card-header py-3">
                 <p class="text-primary m-0 font-weight-bold">Acciones</p>
@@ -313,7 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                             </div>
                             <div class="form-row mb-4">
                                 <div class="col">
-                                    <div style="min-height:200px;" class="form-group">
+                                    <div style="min-height:14.7rem;" class="form-group">
                                         <div id="map"></div>
                                     </div>
                                 </div>

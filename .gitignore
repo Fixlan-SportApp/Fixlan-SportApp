@@ -1,0 +1,8 @@
+.vscode/
+vendor/
+boot.ini
+clientes/boot.ini
+key.pem
+public.pem
+sa_club.sql
+sa_sanluis.sql

@@ -40,7 +40,7 @@
 
     function get_name_club(){
         include 'db.php';
-        $club = mysqli_fetch_array(mysqli_query($conexion, "SELECT b.c_nombre FROM sportapp.tb_cliente AS a INNER JOIN sportapp.tb_club AS b ON a.c_club = b.id WHERE a.c_email = '".get_usuario()."'"));
+        $club = mysqli_fetch_array(mysqli_query($conexion, "SELECT b.c_nombre FROM {$array_ini['database']}.tb_cliente AS a INNER JOIN {$array_ini['database']}.tb_club AS b ON a.c_club = b.id WHERE a.c_email = '".get_usuario()."'"));
         return $club[0];
     }
 
@@ -107,14 +107,14 @@
         include 'db.php';
         $length = 50;
         $token = bin2hex(random_bytes($length));
-        mysqli_query($conexion, "UPDATE sportapp.tb_cliente SET c_token = '" . $token . "' WHERE c_email = '" . $usuario . "'");
+        mysqli_query($conexion, "UPDATE {$array_ini['database']}.tb_cliente SET c_token = '" . $token . "' WHERE c_email = '" . $usuario . "'");
         $_SESSION['SVCGE_TOKEN'] = $token;
     }
 
     function get_token($usuario)
     {
         include 'db.php';
-        $sql = "SELECT a.c_token FROM sportapp.tb_cliente AS a WHERE a.c_email = '" . $usuario . "'";
+        $sql = "SELECT a.c_token FROM {$array_ini['database']}.tb_cliente AS a WHERE a.c_email = '" . $usuario . "'";
         $count = mysqli_fetch_array(mysqli_query($conexion, $sql));
         return $count[0];
     }
@@ -122,7 +122,7 @@
     function get_db_usuario($usuario)
     {
         include 'db.php';
-        $sql = "SELECT a.c_db FROM sportapp.tb_cliente AS a WHERE a.c_email = '" . $usuario . "' AND a.c_estado = 'HABILITADO'";
+        $sql = "SELECT a.c_db FROM {$array_ini['database']}.tb_cliente AS a WHERE a.c_email = '" . $usuario . "' AND a.c_estado = 'HABILITADO'";
         $count = mysqli_fetch_array(mysqli_query($conexion, $sql));
         return $count[0];
     }
@@ -157,7 +157,7 @@
     function get_id_usuario()
     {
         include 'db.php';
-        $id = mysqli_fetch_array(mysqli_query($conexion, "SELECT c_socio FROM sportapp.tb_cliente WHERE c_email = '" . get_usuario() . "'"));
+        $id = mysqli_fetch_array(mysqli_query($conexion, "SELECT c_socio FROM {$array_ini['database']}.tb_cliente WHERE c_email = '" . get_usuario() . "'"));
         return $id[0];
     }
 
@@ -198,6 +198,20 @@
         }
         array_push($estado, $estilo);
         return $estado;
+    }
+    
+    function check_is_socio($dni)
+    {
+        include 'db.php';
+        $socio = mysqli_num_rows(mysqli_query($conexion, "SELECT * FROM " . get_db() . ".socio WHERE s_documento = '" . $dni . "'"));
+        return $socio;
+    }
+
+    function get_socio_by_dni($dni)
+    {
+        include 'db.php';
+        $socio = mysqli_fetch_array(mysqli_query($conexion, "SELECT id, s_apellido as apellido, s_nombre as nombre, s_documento as documento FROM " . get_db() . ".socio WHERE s_documento = '" . $dni . "'"));
+        return $socio;
     }
 
 }
@@ -594,5 +608,29 @@
         include 'db.php';
         $integrante = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(gf_integrante) FROM " . get_db() . ".grupo_fliar WHERE gf_cabecera = '" . $cabecera . "'"));
         return $integrante[0];
+    }
+}
+
+/* MOROSOS */ {
+
+    function check_is_socio_moroso($dni,$inicio,$fin){
+
+        include 'db.php';
+        $sql = "SELECT 
+                    IFNULL(SUM(c.c_monto), 0) cuota
+                FROM
+                    abrilit_fixlan_sportapp_club.socio s
+                        INNER JOIN
+                    abrilit_fixlan_sportapp_club.cuota c
+                WHERE
+                    s.s_documento = '".$dni."'
+                        AND c.c_comprobante = 0
+                        AND c.c_anulada = 'NO'
+                        AND c.c_periodo >= '".$inicio."'
+                        AND c.c_periodo <= '".$fin."' ";
+                        
+        $socio_moroso = mysqli_fetch_assoc(mysqli_query($conexion, $sql));
+        
+        return (empty($socio_moroso))? true : (($socio_moroso['cuota'] > 0)? false : true);
     }
 }
