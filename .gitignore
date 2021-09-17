@@ -1,5 +1,6 @@
 .vscode/
 boot.ini
+vendor/
 clientes/boot.ini
 key.pem
 public.pem

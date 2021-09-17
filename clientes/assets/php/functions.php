@@ -210,7 +210,8 @@
     function get_socio_by_dni($dni)
     {
         include 'db.php';
-        $socio = mysqli_fetch_array(mysqli_query($conexion, "SELECT id, s_apellido as apellido, s_nombre as nombre, s_documento as documento FROM " . get_db() . ".socio WHERE s_documento = '" . $dni . "'"));
+        $sql = "SELECT id, s_apellido as apellido, s_nombre as nombre, s_documento as documento, meses_adeudados, monto_adeudado FROM " . get_db() . ".socio WHERE s_documento = '" . $dni . "'";
+        $socio = mysqli_fetch_array(mysqli_query($conexion, $sql), MYSQLI_ASSOC);
         return $socio;
     }
 
@@ -613,24 +614,24 @@
 
 /* MOROSOS */ {
 
-    function check_is_socio_moroso($dni,$inicio,$fin){
+    // function check_is_socio_moroso($dni,$inicio,$fin){
 
-        include 'db.php';
-        $sql = "SELECT 
-                    IFNULL(SUM(c.c_monto), 0) cuota
-                FROM
-                    abrilit_fixlan_sportapp_club.socio s
-                        INNER JOIN
-                    abrilit_fixlan_sportapp_club.cuota c
-                WHERE
-                    s.s_documento = '".$dni."'
-                        AND c.c_comprobante = 0
-                        AND c.c_anulada = 'NO'
-                        AND c.c_periodo >= '".$inicio."'
-                        AND c.c_periodo <= '".$fin."' ";
+    //     include 'db.php';
+    //     $sql = "SELECT 
+    //                 IFNULL(SUM(c.c_monto), 0) cuota
+    //             FROM
+    //                 " . get_db() . ".socio s
+    //                     INNER JOIN
+    //                 " . get_db() . ".cuota c
+    //             WHERE
+    //                 s.s_documento = '".$dni."'
+    //                     AND c.c_comprobante = 0
+    //                     AND c.c_anulada = 'NO'
+    //                     AND c.c_periodo >= '".$inicio."'
+    //                     AND c.c_periodo <= '".$fin."' ";
                         
-        $socio_moroso = mysqli_fetch_assoc(mysqli_query($conexion, $sql));
+    //     $socio_moroso = mysqli_fetch_assoc(mysqli_query($conexion, $sql));
         
-        return (empty($socio_moroso))? true : (($socio_moroso['cuota'] > 0)? false : true);
-    }
+    //     return (empty($socio_moroso))? true : (($socio_moroso['cuota'] > 0)? false : true);
+    // }
 }

@@ -68,22 +68,26 @@
                 
                 $inicio = new DateTime('first day of this month');
                 $fin = new DateTime('last day of this month');
-                
-                if(!check_is_socio_moroso($dni,$inicio->format('Y-m-d'),$fin->format('Y-m-d'))){
+                // $inicio->format('Y-m-d'),$fin->format('Y-m-d')
+                // $inicio->modify('-2 months');
+                // $fin->modify('-2 months');
+
+                // if(!check_is_socio_moroso($dni,$inicio->format('Y-m-d'),$fin->format('Y-m-d'))){
+                //     $socio['moroso']  = 'amarillo';
+                // }else{
+                //     $socio['moroso']  = 'rojo';
+                // }
+                if($socio['meses_adeudados'] == 0){
                     
                     $socio['moroso']  = 'verde';
 
+                }elseif($socio['meses_adeudados'] == 1
+                        || $socio['meses_adeudados'] == 2){
+
+                    $socio['moroso']  = 'amarillo';
+
                 }else{
-                    
-                    $inicio->modify('-2 months');
-                    $fin->modify('-2 months');
-
-                    if(!check_is_socio_moroso($dni,$inicio->format('Y-m-d'),$fin->format('Y-m-d'))){
-                        $socio['moroso']  = 'amarillo';
-                    }else{
-                        $socio['moroso']  = 'rojo';
-                    }
-
+                    $socio['moroso']  = 'rojo';
                 }
                 header("HTTP/1.1 200 OK");
                 echo json_encode($socio);
