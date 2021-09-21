@@ -64,7 +64,7 @@
                 $socio = get_socio_by_dni($dni);
                 $socio['qr'] = QR::generate($dni);
                 $img_socio = get_img_socio($socio['id']);
-                $socio['imagen'] = "<embed style='width: 100%;max-width: 125px;margin-left: 20px;margin-top: 24px;' src='data:" . $img_socio['i_mime'] . ";base64," . base64_encode($img_socio['i_data']) . "'/>";
+                $socio['imagen'] = "<embed style='width: 100%;max-width:125px;min-width:100px;margin-left: 20px;margin-top: 24px;' src='data:" . $img_socio['i_mime'] . ";base64," . base64_encode($img_socio['i_data']) . "'/>";
                 
                 $inicio = new DateTime('first day of this month');
                 $fin = new DateTime('last day of this month');

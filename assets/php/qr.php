@@ -21,7 +21,7 @@ class QR {
     }
 
     // end displaying
-    return "<img src='{$filenameUrl}' alt='QR' title='Código QR del socio'/>";
+    return "<img src='{$filenameUrl}' alt='QR' class='img-fluid qr' title='Código QR del socio'/>";
 
   }
 
