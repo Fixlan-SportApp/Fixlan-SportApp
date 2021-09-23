@@ -89,6 +89,13 @@
                 }else{
                     $socio['moroso']  = 'rojo';
                 }
+
+                if($socio['estado'] == 'ALTA'){
+                    $socio['estado'] = 'HABILITADO';
+                }else{
+                    $socio['estado'] = 'NO HABILITADO';
+                }
+                
                 header("HTTP/1.1 200 OK");
                 echo json_encode($socio);
                 exit;
