@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $NAME  = $_FILES["img"]["name"];
             $extension = pathinfo($NAME, PATHINFO_EXTENSION);
             $nombre = $i_socio . '.' . $extension;
-            $PATH = "./img/" . get_db();
+            $PATH = "img/" . get_db();
 
             move_uploaded_file($DATA, "$PATH/$nombre");
 
@@ -53,8 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
             $sql = "INSERT INTO " . get_db() . ".imagen (i_socio, i_name, i_mime, i_data) VALUES ('{$i_socio}', '{$NAME}', '{$MIME}', '{$image}')";
 
-            consola($sql);
-
+          
             if (mysqli_query($conexion, $sql)) {
                 header('location: socio_info.php?id=' . $i_socio);
             } else {
@@ -344,10 +343,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                                 </div>
                                 <div class="form-row mb-2">
                                     <div class="col">
-                                        <input readonly class="form-control form-control-sm" type="text" id="s_latitud" name="s_latitud">
+                                        <input readonly class="form-control form-control-sm" type="text" id="s_latitud" value="<?php echo $socio['s_latitud'];?>" name="s_latitud">
                                     </div>
                                     <div class="col">
-                                        <input readonly class="form-control form-control-sm" type="text" id="s_longitud" name="s_longitud">
+                                        <input readonly class="form-control form-control-sm" type="text" id="s_longitud" value="<?php echo $socio['s_longitud'];?>" name="s_longitud">
                                     </div>
                                 </div>
                                 <div class="form-row">
@@ -429,6 +428,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         inicializar_mapa();
     });
 
+
     function reestablecer_direccion() {
         var geocoder = L.esri.Geocoding.geocodeService();
         geocoder.geocode().text('Provincia de Buenos Aires').run(function(error, response) {
@@ -463,14 +463,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         searchControl.remove();
     }
 
-    function inicializar_mapa() {
-        map = L.map('map').setView([<?php echo $socio['s_latitud']; ?>, <?php echo $socio['s_longitud']; ?>], 16);
+  
 
-        marcador = L.marker([<?php echo $socio['s_latitud']; ?>, <?php echo $socio['s_longitud']; ?>]).addTo(map);
+    function inicializar_mapa() {
+
+        var latitud = $('#s_latitud').val();
+        var longitud = $('#s_longitud').val();
+
+        map = L.map('map').setView([latitud, longitud], 16);
+
+
+        marcador = L.marker([latitud, longitud]).addTo(map);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+
+       
+
+        var results = L.layerGroup().addTo(map);
+
+        searchControl.on('results', function(data) {
+            results.clearLayers();
+            for (var i = data.results.length - 1; i >= 0; i--) {
+                results.addLayer(L.marker(data.results[i].latlng));
+                insertar_domicilio(data.results[i].text);
+                insertar_latlng(data.results[i].latlng.lat, data.results[i].latlng.lng);
+            }
+        });
     }
 
     $('#editar_domicilio').change(function() {
@@ -652,6 +672,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             }
         });
     });
+
+  //--------------------------------------------------------------------------------------------------
+  // var map;
+
+
+
+  //---------------------------------------------------------------------------------------------------
+
+
+    
 </script>
 
 <?php include 'assets/php/footer.php'; ?>
