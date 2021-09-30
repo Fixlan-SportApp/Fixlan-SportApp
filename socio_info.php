@@ -1,4 +1,4 @@
-<?php $titulo = "Informaci&oacute;n de Socio"; ?>
+<?php $titulo = "Informaci&oacute;n de Socio";?>
 <?php 
     include 'assets/php/header.php';
     include('assets/vendor/phpqrcode/qrlib.php');
@@ -45,19 +45,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $NAME  = $_FILES["img"]["name"];
             $extension = pathinfo($NAME, PATHINFO_EXTENSION);
             $nombre = $i_socio . '.' . $extension;
-            $PATH = "img/" . get_db();
+            $rutaActual = getcwd();
+            $PATH = $rutaActual."/img/".get_db() ;
 
-            move_uploaded_file($DATA, "$PATH/$nombre");
+    
+            $move=move_uploaded_file($DATA, "$PATH/$nombre");
 
             $image = addslashes(file_get_contents("$PATH/$nombre"));
 
             $sql = "INSERT INTO " . get_db() . ".imagen (i_socio, i_name, i_mime, i_data) VALUES ('{$i_socio}', '{$NAME}', '{$MIME}', '{$image}')";
 
           
-            if (mysqli_query($conexion, $sql)) {
+            if (mysqli_query($conexion, $sql) and $move==true) {
                 header('location: socio_info.php?id=' . $i_socio);
             } else {
-                echo 'Error al actualizar la foto del socio';
+
+                 echo '<div align="center" style="color:blue; font-size:22px">Error al actualizar la foto del socio</div>'; 
                 $socio = get_info_socio($_POST['id']);
             }
         }
@@ -672,14 +675,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             }
         });
     });
-
-  //--------------------------------------------------------------------------------------------------
-  // var map;
-
-
-
-  //---------------------------------------------------------------------------------------------------
-
 
     
 </script>
