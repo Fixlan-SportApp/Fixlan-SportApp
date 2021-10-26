@@ -187,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                     <form enctype="multipart/form-data" action="" method="post">
                         <input hidden name="id" value="<?php echo $socio['id']; ?>">
                         <input class="form-control form-control-sm mb-4" id="file_img" type="file" style="height:40px;" name="img">
-                        <button class="btn btn-sm btn-success" type="submit" name="btn_imagen">Actualizar Im&aacute;gen</button>
+                        <button class="btn btn-sm btn-success" type="submit" name="btn_imagen">Actualizar Imagen</button>
                     </form>
                 </div>
                 <div class="form-row justify-content-center">
