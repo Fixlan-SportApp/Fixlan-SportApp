@@ -181,6 +181,7 @@
     {
         include 'db.php';
         $nombre = mysqli_fetch_array(mysqli_query($conexion, "SELECT c_nombre FROM " . get_db() . ".club WHERE id = 1"));
+
         return $nombre[0];
     }
 
@@ -193,7 +194,9 @@
 
     function get_db()
     {
+
         return $_COOKIE['SP_DB'];
+
     }
 
     function get_coordenadas_club()
@@ -829,16 +832,77 @@
         }
     }
 
+   /*****************************************************************************************/
+   /******************************Carga de Excel de Socios ***********************/
+   /****************************************************************************************/
+    function alta_socio_excel($id, $s_apellido, $s_nombre, $s_documento, $s_fecnac,$s_fecing ,$s_telefono, $s_celular, $s_email, $s_sexo, $s_domicilio, $s_estado,$meses_adeudados,$s_latitud, $s_longitud)
+    {
+
+       /* $sql ="INSERT INTO " . get_db() . ".socio (id, s_apellido, s_nombre, s_documento, s_fecnac, s_telefono, s_celular, s_email, s_sexo, s_domicilio, s_estado, meses_adeudados, s_latitud, s_longitud) VALUES ('" . $id . "','" . mssql_espape(strtoupper($s_apellido)) . "', '" . mssql_espape(strtoupper($s_nombre)) . "', '" . $s_documento . "', '" . $s_fecnac . "', '" . $s_fecing . "', '" . $s_telefono . "', '" . $s_celular . "', '" . strtolower($s_email) . "', '" . $s_sexo . "', '" . $s_domicilio . "', '" . $s_estado . "','" . $meses_adeudados . "','" . $s_latitud . "', '" . $s_longitud . "')";*/
+
+        //var_dump( $sql);
+        //exit;
+
+        include 'db.php';
+        if (check_socio($s_documento)) {
+            if (mysqli_query($conexion, "INSERT INTO " . get_db() . ".socio (id, s_apellido, s_nombre, s_documento, s_fecnac, s_fecing, s_telefono, s_celular, s_email, s_sexo, s_domicilio, s_estado, meses_adeudados, s_latitud, s_longitud) VALUES ('" . $id . "','" . mssql_espape(strtoupper($s_apellido)) . "', '" . mssql_espape(strtoupper($s_nombre)) . "', '" . $s_documento . "', '" . $s_fecnac . "', '" . $s_fecing . "', '" . $s_telefono . "', '" . $s_celular . "', '" . strtolower($s_email) . "', '" . $s_sexo . "', '" . $s_domicilio . "', '" . $s_estado . "','" . $meses_adeudados . "','" . $s_latitud . "', '" . $s_longitud . "')")) {
+                auditoria('SOCIO', 'NUEVO SOCIO. NOMBRE: ' . $s_apellido . ', ' . $s_nombre . '. DOCUMENTO: ' . $s_documento . '. FEC NACIMIENTO: ' . $s_fecnac . '. TELEFONO: ' . $s_telefono . '. CELULAR: ' . $s_celular . '. EMAIL: ' . $s_email . '. SEXO: ' . $s_sexo . '. DOMICILIO: ' . $s_domicilio . '. LATITUD: ' . $s_latitud . '. LONGITUD: ' . $s_longitud);
+                
+
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+   
+    
+   /*****************************************************************************************/
+   /******************************Actualizacion de Socios con Excel ***********************/
+   /****************************************************************************************/
+
+   function update_estado_($id, $estado, $s_telefono, $s_celular, $meses_adeudados)
+    {
+        include 'db.php';
+        if (mysqli_query($conexion, "UPDATE " . get_db() . ".socio SET s_estado = '" . $estado . "', s_telefono = '" . $s_telefono . "', s_celular = '" . $s_celular . "', meses_adeudados = '" . $meses_adeudados . "'  WHERE id = '" . $id . "'")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+   /**********************************************************************************************/
+
     function check_socio($s_documento)
     {
         include 'db.php';
         $count = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(id) FROM " . get_db() . ".socio WHERE s_documento = '" . $s_documento . "'"));
+
         if ($count[0] == 0) {
             return true;
         } else {
             return false;
         }
     }
+
+    /*********************************************************************************************************/
+
+     function check_socio_nro($socio)
+    {
+        include 'db.php';
+        $count = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(id) FROM " . get_db() . ".socio WHERE id = '" . $socio . "'"));
+
+        if ($count[0] == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /*********************************************************************************************************/
+
 
     // function check_carnet($s_carnet)
     // {
@@ -909,6 +973,9 @@
             return false;
         }
     }
+
+
+   
 
     function get_resultados_busqueda_socio($campo)
     {
