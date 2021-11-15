@@ -26,7 +26,8 @@
         <div id="socios" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
             <div class="py-2 collapse-inner rounded">
                 <a class="collapse-item" href="socio_alta.php">Alta de Socio</a>
-                <a class="collapse-item" href="socios_index.php">Listado de Socios</a>                
+                <a class="collapse-item" href="socios_index.php">Listado de Socios</a>     
+                <a class="collapse-item" href="alta_socios_index.php">Importación de Socios</a>    
             </div>
         </div>
     </li>
