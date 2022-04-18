@@ -63,6 +63,17 @@
         a.collapse-item{
             color:white !important;
         }
+
+        .select2-container {
+            font-size: 0.875em;
+            border: 1px solid #d1d3e2;
+        }
+
+        .select2-container--default .select2-selection--multiple,
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border: 0px;
+        }
+        
     </style>
 
     <!-- Load Leaflet from CDN -->

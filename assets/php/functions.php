@@ -28,7 +28,7 @@
     function get_error($id)
     {
         include 'db.php';
-        $error = mysqli_fetch_array(mysqli_query($conexion, "SELECT * FROM {$array_ini['database']}.tb_error WHERE id = '" . $id . "'"));
+        $error = mysqli_fetch_array(mysqli_query($conexion, "SELECT * FROM {$sportapp_db}.tb_error WHERE id = '" . $id . "'"));
         return $error;
     }
 
@@ -62,7 +62,7 @@
         $inicio = date('Ymd', strtotime($fecini));
         $fin = date('Ymd', strtotime($fecfin));
         $tabla = "";
-        $r = mysqli_query($conexion, "SELECT a.a_fecha, a.a_categoria, a.a_concepto, b.u_usuario FROM " . get_db() . ".auditoria AS a INNER JOIN {$array_ini['database']}.tb_usuario AS b ON a.a_usuario = b.id WHERE a.a_fecha BETWEEN '" . $inicio . "' AND '" . $fin . "'");
+        $r = mysqli_query($conexion, "SELECT a.a_fecha, a.a_categoria, a.a_concepto, b.u_usuario FROM " . get_db() . ".auditoria AS a INNER JOIN {$sportapp_db}.tb_usuario AS b ON a.a_usuario = b.id WHERE a.a_fecha BETWEEN '" . $inicio . "' AND '" . $fin . "'");
         while ($f = mysqli_fetch_array($r)) {
             $tabla .= "<tr>";
             $tabla .= "<td>" . $f[0]->format('d/m/Y H:i:s') . "</td>";
@@ -83,7 +83,7 @@
     function modulo_habilitado($modulo)
     {
         include 'db.php';
-        $json_modulos = mysqli_fetch_array(mysqli_query($conexion, "SELECT a.c_modulos FROM {$array_ini['database']}.tb_club AS a WHERE a.c_db = '" . get_db() . "'"));
+        $json_modulos = mysqli_fetch_array(mysqli_query($conexion, "SELECT a.c_modulos FROM {$sportapp_db}.tb_club AS a WHERE a.c_db = '" . get_db() . "'"));
         $modulos_habilitados = json_decode($json_modulos[0], true);
         if (in_array($modulo, $modulos_habilitados)) {
             return true;
@@ -125,14 +125,14 @@
     function get_nombre_usuario()
     {
         include 'db.php';
-        $nombre = mysqli_fetch_array(mysqli_query($conexion, "SELECT a.u_nombre FROM {$array_ini['database']}.tb_usuario AS a WHERE a.u_usuario = '" . get_usuario() . "'"));
+        $nombre = mysqli_fetch_array(mysqli_query($conexion, "SELECT a.u_nombre FROM {$sportapp_db}.tb_usuario AS a WHERE a.u_usuario = '" . get_usuario() . "'"));
         return $nombre[0];
     }
 
     function get_token($usuario)
     {
         include 'db.php';
-        $sql = "SELECT a.u_token FROM {$array_ini['database']}.tb_usuario AS a WHERE a.u_usuario = '" . $usuario . "'";
+        $sql = "SELECT a.u_token FROM {$sportapp_db}.tb_usuario AS a WHERE a.u_usuario = '" . $usuario . "'";
         $count = mysqli_fetch_array(mysqli_query($conexion, $sql));
         return $count[0];
     }
@@ -142,14 +142,14 @@
         include 'db.php';
         $length = 50;
         $token = bin2hex(random_bytes($length));
-        mysqli_query($conexion, "UPDATE {$array_ini['database']}.tb_usuario SET u_token = '" . $token . "' WHERE u_usuario = '" . $usuario . "'");
+        mysqli_query($conexion, "UPDATE {$sportapp_db}.tb_usuario SET u_token = '" . $token . "' WHERE u_usuario = '" . $usuario . "'");
         $_SESSION['SVCGE_TOKEN'] = $token;
     }
 
     function get_login($usuario, $password)
     {
         include 'db.php';
-        $sql = "SELECT COUNT(a.id) FROM {$array_ini['database']}.tb_usuario AS a WHERE a.u_usuario = '" . $usuario . "' AND a.u_password = '" . md5($password) . "' AND a.u_estado = 'HABILITADO'";
+        $sql = "SELECT COUNT(a.id) FROM {$sportapp_db}.tb_usuario AS a WHERE a.u_usuario = '" . $usuario . "' AND a.u_password = '" . md5($password) . "' AND a.u_estado = 'HABILITADO'";
         $count = mysqli_fetch_array(mysqli_query($conexion, $sql));
         return $count[0];
     }
@@ -157,7 +157,7 @@
     function get_db_usuario($usuario)
     {
         include 'db.php';
-        $sql = "SELECT b.c_db FROM {$array_ini['database']}.tb_usuario AS a INNER JOIN {$array_ini['database']}.tb_club AS b ON a.u_club = b.id WHERE a.u_usuario = '" . $usuario . "' AND a.u_estado = 'HABILITADO'";
+        $sql = "SELECT b.c_db FROM {$sportapp_db}.tb_usuario AS a INNER JOIN {$sportapp_db}.tb_club AS b ON a.u_club = b.id WHERE a.u_usuario = '" . $usuario . "' AND a.u_estado = 'HABILITADO'";
         $count = mysqli_fetch_array(mysqli_query($conexion, $sql));
         return $count[0];
     }
@@ -170,7 +170,7 @@
     function get_id_usuario()
     {
         include 'db.php';
-        $id = mysqli_fetch_array(mysqli_query($conexion, "SELECT id FROM {$array_ini['database']}.tb_usuario WHERE u_usuario = '" . get_usuario() . "'"));
+        $id = mysqli_fetch_array(mysqli_query($conexion, "SELECT id FROM {$sportapp_db}.tb_usuario WHERE u_usuario = '" . get_usuario() . "'"));
         return $id[0];
     }
 }
@@ -1706,13 +1706,292 @@
         }
         return $tabla;
     }
-    
 }
 
 /* LOTES */ {
 
-    function get_listado_lotes()
+    function cambiar_estado_lote($id_lote, $nombre_archivo, $estado) {
+        include 'db.php';
+        $base = get_db();
+        $sql = "UPDATE {$base}.lote SET l_devolucion='{$nombre_archivo}', l_estado='FINALIZADO' WHERE id = {$id_lote}";
+        if (!mysqli_query($conexion, $sql)) {
+            throw new Exception("Falló la actualización del lote {$id_lote}");
+        }
+    }
+
+    function get_nombre_forpag($forpag) {
+        include 'db.php';
+        $base = get_db();
+        $sql = "SELECT fp.forpag_nombre FROM {$base}.forpag AS fp WHERE fp.id = {$forpag}";
+        $result = mysqli_fetch_array(mysqli_query($conexion, $sql));
+        return $result[0];
+    }
+
+    function get_datos_tarjeta($tarjeta) {
+        include 'db.php';
+        $base = get_db();
+        $sql = "SELECT t.id, t.t_nombre, t.t_establecimiento, t.t_forpag, t.t_DoC, t.t_empresa_debito, t.t_nombre_clase FROM {$base}.tarjeta AS t WHERE t.id = {$tarjeta}";
+        return mysqli_fetch_array(mysqli_query($conexion, $sql));
+    }
+
+    function get_datos_lote($id_lote) {
+        include 'db.php';
+        $base = get_db();
+        $sql = "SELECT l.id, l.l_tarjeta FROM {$base}.lote AS l WHERE l.id = {$id_lote}";
+        return mysqli_fetch_array(mysqli_query($conexion, $sql));
+    }
+
+    function get_lista_cuotas_a_debitar($forpag, $tarjeta) {
+        include 'db.php';
+        $base = get_db();
+        $sql = "SELECT cuota.id, DATE_FORMAT(cuota.c_periodo, '%m/%y') as c_periodo, cuota.c_socio, cuota.c_monto, DATE_FORMAT(cuota.c_alta, '%Y%m%d') as c_alta,
+                       socio.id as s_id, socio.s_documento,
+                       forpag.forpag_nombre,
+                       soccat.sc_debito_tarjeta, soccat.sc_debito_vencimiento,
+                       tarje.t_nombre, tarje.t_establecimiento, tarje.t_DoC,
+                       categ.c_nombre,
+                       subcat.sc_nombre,
+                       CASE WHEN EXISTS(SELECT * FROM {$base}.primer_debito AS p WHERE p.NroTarjeta = soccat.sc_debito_tarjeta) THEN FALSE ELSE TRUE END as primer_debito
+                FROM  {$base}.cuota AS cuota 
+                INNER JOIN {$base}.socio AS socio ON socio.id = cuota.c_socio AND cuota.c_monto > 0 AND cuota.c_anulada = 'NO'
+                                                     AND YEAR(cuota.c_periodo) = YEAR(CURDATE()) AND MONTH(cuota.c_periodo) = MONTH(CURDATE())
+                INNER JOIN {$base}.forpag AS forpag ON cuota.c_forpag = forpag.id AND forpag.id = {$forpag} AND forpag.forpag_debito = 'S'
+                INNER JOIN {$base}.socio_categoria AS soccat ON cuota.c_sc = soccat.id AND soccat.sc_estado = 'HABILITADO'
+                INNER JOIN {$base}.tarjeta AS tarje ON tarje.id = soccat.sc_tarjeta AND tarje.id = {$tarjeta} AND tarje.t_estado = 'HABILITADO'
+                INNER JOIN {$base}.subcategoria AS subcat ON soccat.sc_subcategoria = subcat.id AND subcat.sc_estado = 'HABILITADO'
+                INNER JOIN {$base}.categoria AS categ ON categ.id = subcat.sc_categoria";
+        $result = mysqli_query($conexion, $sql);
+        return $result;
+    }
+
+    function generar_lote($forma_pago, $tarjeta = null) {
+        include 'db.php';
+        $base = get_db();
+
+        $lista_debitos = get_lista_cuotas_a_debitar($forma_pago, $tarjeta);
+
+        if (!mysqli_num_rows($lista_debitos)) {
+            return false;
+        }
+
+        $nombre_forma_pago = get_nombre_forpag($forma_pago);
+        $datos_tarjeta = get_datos_tarjeta($tarjeta); // id, t_nombre, t_establecimiento, t_DoC, t_empresa_debito
+        $id_tarjeta = $datos_tarjeta["id"];
+        $nombre_clase = "orden_debito_{$datos_tarjeta["t_nombre_clase"]}";
+
+        require_once "{$nombre_clase}.php";
+       
+        $archivo = new $nombre_clase($lista_debitos, $nombre_forma_pago, $datos_tarjeta);
+        $archivo->convertir();
+        return $archivo->guardar_archivo($base) && 
+               agregar_lote($id_tarjeta, get_id_usuario(), $archivo->get_nombre_archivo(), $archivo->get_cant_registros(), $archivo->get_suma_importes());
+    }
+
+    function agregar_lote($id_tarjeta, $id_usuario, $nombre_archivo, $cant_registros, $suma_importes) {
+        include 'db.php';
+        $base = get_db();
+        $date = new DateTime();
+        $time = $date->format('Y-m-d H:i:s');
+        $sql = "INSERT INTO {$base}.lote (l_tarjeta, l_usuario, l_archivo, l_cant_registros, l_suma_importes) 
+                VALUES ({$id_tarjeta}, {$id_usuario}, '{$nombre_archivo}', {$cant_registros}, {$suma_importes})";
+        if (mysqli_query($conexion, $sql)) {
+            auditoria('LOTE', "NUEVO LOTE. ID TARJETA: {$id_tarjeta}. ARCHIVO: {$nombre_archivo}. TIME: {$time}. USUARIO: {$id_usuario}");
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    function obtener_cuota_debito($tarjeta, $socio, $ano_debito, $mes_debito, $monto) {
+        // Devuelve el id de la cuota que cumple la condición o FALSE
+        include 'db.php';
+        $base = get_db();
+        $sql = "SELECT cuota.id
+                FROM {$base}.cuota AS cuota 
+                INNER JOIN {$base}.socio_categoria AS soccat ON cuota.c_sc = soccat.id
+                AND soccat.sc_debito_tarjeta = '{$tarjeta}'
+                AND cuota.c_socio = {$socio}
+                AND DATE_FORMAT(cuota.c_periodo, '%Y') = {$ano_debito}
+                AND DATE_FORMAT(cuota.c_periodo, '%m') = {$mes_debito}
+                AND cuota.c_monto = {$monto}";
+        $result = mysqli_query($conexion, $sql);
+        if ($result && (mysqli_num_rows($result) == 1)) {
+            return mysqli_fetch_array($result)[0];
+        }
+        else {
+            throw new Exception("No existe en la base de datos la cuota informada.");
+        }
+    }
+
+    function agregar_comprobante($id_cuota, $identificador) {
+        include 'db.php';
+        $base = get_db();
+        $sql = "UPDATE {$base}.cuota
+                SET c_comprobante = '{$identificador}'
+                WHERE id = {$id_cuota}";
+        return mysqli_query($conexion, $sql);
+    }
+
+    function insertar_rechazo($id_lote, $socio, $tarjeta, $fecha_origen, $monto, $identificador, $cod_rechazo, $descripcion_rechazo) {
+        include 'db.php';
+        $base = get_db();
+        $sql = "INSERT INTO {$base}.rechazo (r_lote, r_socio, tarjeta, fecha_origen, importe, identificador, cod_rechazo, descripcion_rechazo)
+                VALUES ({$id_lote}, {$socio}, '{$tarjeta}', '{$fecha_origen}', {$monto}, '{$identificador}', '{$cod_rechazo}', '{$descripcion_rechazo}')";
+        return mysqli_query($conexion, $sql);
+    }
+
+    function socio_id_exists($id) {
+        include 'db.php';
+        $count = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(id) FROM " . get_db() . ".socio WHERE id = {$id}"));
+        if ($count[0] == 0) {
+            throw new Exception("No existe en la base de datos el socio {$id}.");
+        }
+        return TRUE;
+    }
+
+    function tarjeta_exists($tarjeta) {
+        include 'db.php';
+        $count = mysqli_fetch_array(mysqli_query($conexion, "SELECT COUNT(*) FROM " . get_db() . ".socio_categoria WHERE sc_debito_tarjeta = '{$tarjeta}'"));
+        if ($count[0] == 0) {
+            throw new Exception("No existe en la base de datos la tarjeta {$tarjeta}.");
+        }
+        return TRUE;
+    }
+
+    function actualizar_cuota($id_lote, $devolucion) {
+        /* DEVOLUCION FISERV
+            AC243383300018163350000000000000001429000000020000000123110009/21090821                                        230821                                           
+            ["TipoRegistro"]=> string(1) "2" 
+            ["NroTarjeta"]=> string(16) "4338330001816335" 
+            ["NroReferencia"]=> string(12) "000000001429" 
+            ["Importe"]=> string(11) "00000200000" 
+            ["CantCuotas"]=> string(3) "001" 
+            ["Vencimiento"]=> string(4) "2311" 
+            ["CodRechazo"]=> string(2) "00" 
+            ["DescripcionRechazo"]=> string(68) "Indicación de transacción aceptada o tarjeta con cambio de número" 
+            ["Periodo"]=> string(5) "09/21" 
+            ["FechaPresentacion"]=> string(6) "090821"  */
+
+        /*  TABLA RECHAZOS
+            r_lote Índice 	        int(11)
+            r_socio 	            int(11)
+            tarjeta 	            varchar(100)
+            fecha_origen 	        datetime
+            importe 	            decimal(18,2)
+            identificador 	        varchar(15)
+            cod_rechazo 	        varchar(255)
+            descripcion_rechazo     varchar(255)    */
+        $socio = $devolucion["Socio"];
+        $nro_tarjeta = $devolucion["NroTarjeta"];
+        $ano_debito = $devolucion["PeriodoMes"];
+        $mes_debito = $devolucion["PeriodoAno"];
+        $monto = $devolucion["Monto"] / 100;
+        $cod_rechazo = $devolucion["CodRechazo"];
+        $descripcion_rechazo = $devolucion["DescripcionRechazo"];
+        $identificador = $devolucion["Identificador"];
+        $fecha_origen = $devolucion["FechaOrigen"];
+
+        try {
+            socio_id_exists($socio);
+            tarjeta_exists($nro_tarjeta);
+            $id_cuota = obtener_cuota_debito($nro_tarjeta, $socio, $ano_debito, $mes_debito, $monto);
+            if ($estado_movimiento == "0") {   // se debitó
+                if (!agregar_comprobante($id_cuota, $identificador)) {
+                    throw new Exception("Falló la actualización de la cuota {$id_cuota}");
+                }
+            }
+            else {  // se rechazó
+                if (!insertar_rechazo($id_lote, $socio, $nro_tarjeta, $fecha_origen, $monto, $identificador, $cod_rechazo, $descripcion_rechazo)) {
+                    throw new Exception("Falló el registro del rechazo: tarjeta {$tarjeta}, socio {$socio}");
+                }
+            }
+        }
+        catch (Exception $e) {
+            if (!insertar_rechazo($id_lote, $socio, $nro_tarjeta, $fecha_origen, $monto, $identificador, "999", $e->getMessage())) {
+                throw new Exception("Falló el registro del rechazo: tarjeta {$nro_tarjeta}, socio {$socio}. {$e->getMessage()}");
+            }
+        }
+    }
+
+    /*  $cambiar_tarjeta = function ($tarjeta_vieja, $tarjeta_nueva) {
+            include 'db.php';
+            $base = get_db();
+            $sql = "UPDATE {$base}.socio_categoria
+                    SET sc_debito_tarjeta = '{$tarjeta_nueva}'
+                    WHERE sc_debito_tarjeta = '{$tarjeta_vieja}'";
+            return mysqli_query($conexion, $sql);
+        };
+    */
+
+    function agregar_devolucion($id_lote, $nombre_archivo) {
+        include 'db.php';
+        $base = get_db();
+        $time = (new DateTime())->format('Y-m-d H:i:s');
+        $id_usuario = get_id_usuario();
+
+        $datos_lote = get_datos_lote($id_lote);  
+        $id_tarjeta = $datos_lote["l_tarjeta"];
+
+        $datos_tarjeta = get_datos_tarjeta($id_tarjeta); // id, t_nombre, t_establecimiento, t_forpag, t_DoC, t_empresa_debito
+        // $nombre_forma_pago = get_nombre_forpag($datos_tarjeta["t_forpag"]);
+
+        $nombre_clase = "devolucion_debito_{$datos_tarjeta["t_nombre_clase"]}";
+
+        require_once "{$nombre_clase}.php";
+
+        // actualizar lote y cuotas
+        $archivo = new $nombre_clase($nombre_archivo, $base, $datos_tarjeta /*, $cambiar_tarjeta*/);
+        $devoluciones = $archivo->get_lista_devoluciones();
+
+        mysqli_begin_transaction($conexion, MYSQLI_TRANS_START_READ_WRITE);
+        try {
+            foreach ($devoluciones as $devolucion) {
+                actualizar_cuota($id_lote, $devolucion);
+            }
+            cambiar_estado_lote($id_lote, $nombre_archivo, 'FINALIZADO');
+            
+            mysqli_commit($conexion);
+            auditoria('LOTE', "NUEVA DEVOLUCION ID LOTE: {$id_lote}. ARCHIVO: {$nombre_archivo}. TIME: {$time}. USUARIO: {$id_usuario}");
+        }
+        catch (Exception $e) {
+            mysqli_rollback($conexion);
+            throw $e;
+        }
+        return TRUE;
+    }
+
+    function get_lista_lotes()
     {
+        include 'db.php';
+        $data = array();
+        $base = get_db();
+        $sql = "SELECT L.id, '{$base}' as base, T.t_empresa_debito, T.t_nombre, U.u_usuario, L.l_archivo, L.l_devolucion, L.l_cant_registros, L.l_suma_importes, L.l_alta
+                FROM {$base}.lote L
+                INNER JOIN {$base}.tarjeta T ON L.l_tarjeta = T.id
+                INNER JOIN {$sportapp_db}.tb_usuario U ON L.l_usuario = U.id";
+        $r = mysqli_query($conexion, $sql);
+        while ($fila = mysqli_fetch_array($r)) {
+            array_push($data, $fila);
+        }
+        return $data;
+    }
+
+    function get_lista_rechazos($lote) {
+        include 'db.php';
+        $data = array();
+        $base = get_db();
+        $sql = "SELECT R.id, R.r_socio, R.tarjeta, R.fecha_origen, R.importe, R.identificador, R.cod_rechazo, R.descripcion_rechazo
+                FROM {$base}.rechazo R
+                WHERE R.r_lote = {$lote}";
+        $r = mysqli_query($conexion, $sql);
+        while ($fila = mysqli_fetch_array($r)) {
+            array_push($data, $fila);
+        }
+        return $data;
+    }
+
+    function get_listado_lotes() { // es de Juani; no la uso
         include 'db.php';
         $tabla = "";
         $r = mysqli_query($conexion, $sql);

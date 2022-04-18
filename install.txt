@@ -1,0 +1,48 @@
+BD
+==
+
+CREATE TABLE `primer_debito` (
+  `id` int(11) NOT NULL,
+  `NroTarjeta` varchar(16) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `primer_debito`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `primer_debito`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+COMMIT;
+
+
+
+ALTER TABLE `tarjeta` ADD `t_empresa_debito` VARCHAR(80) NULL AFTER `t_forpag`;
+ALTER TABLE `tarjeta` ADD `t_DoC` CHAR(1) NOT NULL AFTER `t_empresa_debito`;
+ALTER TABLE `tarjeta` ADD `nombre_clase` VARCHAR(80) AFTER `t_DoC`;
+
+
+
+ALTER TABLE `lote` ADD `l_cant_registros` INT NOT NULL AFTER `l_archivo`, ADD `l_suma_importes` DECIMAL(10,2) NOT NULL AFTER `l_cant_registros`; 
+
+
+CREATE TABLE `rechazo` (
+  `id` int(11) NOT NULL,
+  `r_lote` int(11) NOT NULL,
+  `r_socio` int(11) DEFAULT NULL,
+  `tarjeta` varchar(100) DEFAULT NULL,
+  `fecha_origen` datetime DEFAULT NULL,
+  `importe` decimal(18,2) DEFAULT NULL,
+  `identificador` varchar(255) DEFAULT NULL,
+  `cod_rechazo` varchar(255) DEFAULT NULL,
+  `descripcion_rechazo` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE `rechazo`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_rechazo_lote_idx` (`r_lote`);
+
+ALTER TABLE `rechazo`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `rechazo`
+  ADD CONSTRAINT `fk_rechazo_lote` FOREIGN KEY (`r_lote`) REFERENCES `lote` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+COMMIT;
