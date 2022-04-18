@@ -64,27 +64,38 @@
                 $socio = get_socio_by_dni($dni);
                 $socio['qr'] = QR::generate($dni);
                 $img_socio = get_img_socio($socio['id']);
-                $socio['imagen'] = "<embed style='width: 100%;max-width: 125px;margin-left: 20px;margin-top: 24px;' src='data:" . $img_socio['i_mime'] . ";base64," . base64_encode($img_socio['i_data']) . "'/>";
+                $socio['imagen'] = "<embed style='width: 100%;max-width:125px;min-width:100px;margin-left: 20px;margin-top: 24px;' src='data:" . $img_socio['i_mime'] . ";base64," . base64_encode($img_socio['i_data']) . "'/>";
                 
                 $inicio = new DateTime('first day of this month');
                 $fin = new DateTime('last day of this month');
-                
-                if(!check_is_socio_moroso($dni,$inicio->format('Y-m-d'),$fin->format('Y-m-d'))){
+                // $inicio->format('Y-m-d'),$fin->format('Y-m-d')
+                // $inicio->modify('-2 months');
+                // $fin->modify('-2 months');
+
+                // if(!check_is_socio_moroso($dni,$inicio->format('Y-m-d'),$fin->format('Y-m-d'))){
+                //     $socio['moroso']  = 'amarillo';
+                // }else{
+                //     $socio['moroso']  = 'rojo';
+                // }
+                if($socio['meses_adeudados'] == 0){
                     
                     $socio['moroso']  = 'verde';
 
+                }elseif($socio['meses_adeudados'] == 1
+                        || $socio['meses_adeudados'] == 2){
+
+                    $socio['moroso']  = 'amarillo';
+
                 }else{
-                    
-                    $inicio->modify('-2 months');
-                    $fin->modify('-2 months');
-
-                    if(!check_is_socio_moroso($dni,$inicio->format('Y-m-d'),$fin->format('Y-m-d'))){
-                        $socio['moroso']  = 'amarillo';
-                    }else{
-                        $socio['moroso']  = 'rojo';
-                    }
-
+                    $socio['moroso']  = 'rojo';
                 }
+
+                if($socio['estado'] == 'ALTA'){
+                    $socio['estado'] = 'HABILITADO';
+                }else{
+                    $socio['estado'] = 'NO HABILITADO';
+                }
+                
                 header("HTTP/1.1 200 OK");
                 echo json_encode($socio);
                 exit;

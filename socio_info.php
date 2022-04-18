@@ -1,4 +1,4 @@
-<?php $titulo = "Informaci&oacute;n de Socio"; ?>
+<?php $titulo = "Informaci&oacute;n de Socio";?>
 <?php 
     include 'assets/php/header.php';
     include('assets/vendor/phpqrcode/qrlib.php');
@@ -45,20 +45,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             $NAME  = $_FILES["img"]["name"];
             $extension = pathinfo($NAME, PATHINFO_EXTENSION);
             $nombre = $i_socio . '.' . $extension;
-            $PATH = "./img/" . get_db();
+            $rutaActual = getcwd();
+            $PATH = $rutaActual."/img/".get_db() ;
 
-            move_uploaded_file($DATA, "$PATH/$nombre");
+    
+            $move=move_uploaded_file($DATA, "$PATH/$nombre");
 
             $image = addslashes(file_get_contents("$PATH/$nombre"));
 
             $sql = "INSERT INTO " . get_db() . ".imagen (i_socio, i_name, i_mime, i_data) VALUES ('{$i_socio}', '{$NAME}', '{$MIME}', '{$image}')";
 
-            consola($sql);
-
-            if (mysqli_query($conexion, $sql)) {
+          
+            if (mysqli_query($conexion, $sql) and $move==true) {
                 header('location: socio_info.php?id=' . $i_socio);
             } else {
-                echo 'Error al actualizar la foto del socio';
+
+                 echo '<div align="center" style="color:blue; font-size:22px">Error al actualizar la foto del socio</div>'; 
                 $socio = get_info_socio($_POST['id']);
             }
         }
@@ -185,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                     <form enctype="multipart/form-data" action="" method="post">
                         <input hidden name="id" value="<?php echo $socio['id']; ?>">
                         <input class="form-control form-control-sm mb-4" id="file_img" type="file" style="height:40px;" name="img">
-                        <button class="btn btn-sm btn-success" type="submit" name="btn_imagen">Actualizar Im&aacute;gen</button>
+                        <button class="btn btn-sm btn-success" type="submit" name="btn_imagen">Actualizar Imagen</button>
                     </form>
                 </div>
                 <div class="form-row justify-content-center">
@@ -344,10 +346,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                                 </div>
                                 <div class="form-row mb-2">
                                     <div class="col">
-                                        <input readonly class="form-control form-control-sm" type="text" id="s_latitud" name="s_latitud">
+                                        <input readonly class="form-control form-control-sm" type="text" id="s_latitud" value="<?php echo $socio['s_latitud'];?>" name="s_latitud">
                                     </div>
                                     <div class="col">
-                                        <input readonly class="form-control form-control-sm" type="text" id="s_longitud" name="s_longitud">
+                                        <input readonly class="form-control form-control-sm" type="text" id="s_longitud" value="<?php echo $socio['s_longitud'];?>" name="s_longitud">
                                     </div>
                                 </div>
                                 <div class="form-row">
@@ -429,6 +431,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         inicializar_mapa();
     });
 
+
     function reestablecer_direccion() {
         var geocoder = L.esri.Geocoding.geocodeService();
         geocoder.geocode().text('Provincia de Buenos Aires').run(function(error, response) {
@@ -463,14 +466,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         searchControl.remove();
     }
 
-    function inicializar_mapa() {
-        map = L.map('map').setView([<?php echo $socio['s_latitud']; ?>, <?php echo $socio['s_longitud']; ?>], 16);
+  
 
-        marcador = L.marker([<?php echo $socio['s_latitud']; ?>, <?php echo $socio['s_longitud']; ?>]).addTo(map);
+    function inicializar_mapa() {
+
+        var latitud = $('#s_latitud').val();
+        var longitud = $('#s_longitud').val();
+
+        map = L.map('map').setView([latitud, longitud], 16);
+
+
+        marcador = L.marker([latitud, longitud]).addTo(map);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+
+       
+
+        var results = L.layerGroup().addTo(map);
+
+        searchControl.on('results', function(data) {
+            results.clearLayers();
+            for (var i = data.results.length - 1; i >= 0; i--) {
+                results.addLayer(L.marker(data.results[i].latlng));
+                insertar_domicilio(data.results[i].text);
+                insertar_latlng(data.results[i].latlng.lat, data.results[i].latlng.lng);
+            }
+        });
     }
 
     $('#editar_domicilio').change(function() {
@@ -652,6 +675,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             }
         });
     });
+
+    
 </script>
 
 <?php include 'assets/php/footer.php'; ?>
