@@ -14,6 +14,9 @@
     }
 ?>
 <h5><?php echo $titulo; ?></h5><hr>
+
+<p id="pepe"></p>
+
 <div class="card shadow mb-3">
     <div class="card-body">
         <form method="post" action="" autocomplete="off">
@@ -74,7 +77,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="tarjeta">
+                <div id="tarjetaDiv">
                     <div class="row">
                         <div class="col-xs-12 col-sm-12 col-md-6">
                             <div class="form-group">
@@ -91,14 +94,17 @@
                         <div class="col-xs-12 col-sm-12 col-md-3">
                             <div class="form-group">
                                 <label>Tarjeta</label>
-                                <select name="sc_tarjeta" required class="form-control form-control-sm">
+                                <select name="sc_tarjeta" id="tarjeta" required class="form-control form-control-sm">
                                     <?php echo get_select_tarjetas($actividad[9]); ?>
                                 </select>
+
+                                <p id="pepe"></p>
+
                             </div>
                         </div>
                     </div>
                 </div>
-                <div id="cbu">
+                <div id="cbuDiv">
                     <div class="row">
                         <div class="col-xs-12 col-sm-12 col-md-12">
                             <div class="form-group">
@@ -132,8 +138,35 @@
 </div>
 
 <script>
+    function filtrarCambio(idSelectMaster, idSelectDetail, allOptionsDetail) {
+        var classMaster = $(idSelectMaster + ' option:selected').prop('class');
+        var newOptionsDetail = allOptionsDetail.filter('.' + classMaster);
+        $(idSelectDetail + ' option').remove();
+        $.each(newOptionsDetail, function(i, j) {
+            $(this).removeAttr('selected');
+            $(this).appendTo(idSelectDetail);
+        });
+        $(idSelectDetail + ' option:first').prop('selected', true);
+    }
+
+    function filtrarInicio(idSelectMaster, idSelectDetail, allOptionsDetail) {
+        var classMaster = $(idSelectMaster + ' option:selected').prop('class');
+        var newOptionsDetail = allOptionsDetail.filter('.' + classMaster);
+        $(idSelectDetail + ' option').remove();
+        var optDetailSelected;
+        $.each(newOptionsDetail, function(i, j) {
+            $(this).attr('selected') && (optDetailSelected = $(this));
+            $(this).appendTo(idSelectDetail);
+        });
+        optDetailSelected.prop('selected', true);
+    }
+
+    function mostrarControles() {
+        $('#forpag option:selected').text().substring(0, 25) == "DEBITO AUTOMATICO TARJETA" ? $('#tarjetaDiv').show() : $('#tarjetaDiv').hide();
+        $('#forpag option:selected').text() == "DEBITO AUTOMATICO CBU" ? $('#cbuDiv').show() : $('#cbuDiv').hide();
+    }
+
     $(document).ready(function() {
-        
         $('#tabla_actividades').DataTable({
             "order": [
                 [1, "asc"]
@@ -141,11 +174,10 @@
             stateSave: true
         });
 
-        $('#tarjeta').hide();
-        $('#cbu').hide();
+        mostrarControles();
 
         //SELECCION Y FILTRO AUTOMATICO DE CATEGORIA Y SUBCATEGORIA
-        var allOptions = $('#subcategoria option')
+        var allOptions = $('#subcategoria option');
 
         $('#categoria').change(function() {
             $('#subcategoria option').remove()
@@ -156,19 +188,15 @@
             });
         });
 
-        //VISUALIZACION DE DIVS DE DEBITO EN BASE A FORPAG
+        //SELECCION Y FILTRO AUTOMATICO DE FORMA DE PAGO Y TARJETA
+        var tarjOptions = $('#tarjeta option');
+        filtrarInicio('#forpag', '#tarjeta', tarjOptions);
 
+        //VISUALIZACION DE DIVS DE DEBITO EN BASE A FORPAG
         $('#forpag').change(function() {
-            if ($('#forpag option:selected').text() == "DEBITO AUTOMATICO TARJETA") {
-                $('#tarjeta').show();
-                $('#cbu').hide();
-            } else if ($('#forpag option:selected').text() == "DEBITO AUTOMATICO CBU") {
-                $('#cbu').show();
-                $('#tarjeta').hide();
-            } else {
-                $('#tarjeta').hide();
-                $('#cbu').hide();
-            }
+            mostrarControles();
+            if ($('#forpag option:selected').text().substring(0, 25) == "DEBITO AUTOMATICO TARJETA")
+                filtrarCambio('#forpag', '#tarjeta', tarjOptions);
         });
 
         //CONTADOR DE CARACTERES EN DEBITO AUTOMATICO

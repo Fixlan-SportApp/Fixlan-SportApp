@@ -91,18 +91,19 @@ class orden_debito_prisma_visa extends orden_debito {
 
     private function crear_detalle($debito, $NroSecuencia) {
         return
-            "1" .                                                                               // TipoRegistro        1      1      AN                  "1"             Tipo de Registro (Fijo "1")
-            str_pad($debito["sc_debito_tarjeta"], 16) .                                         // NroTarjeta          2     16      AN                                  Número de Tarjeta
-            "   " .                                                                             // Reservado1         18      3      AN                  "   "           Constante 3 espacios
-            str_pad($NroSecuencia, 8, "0", STR_PAD_LEFT) .                                      // Referencia         21      8      N                                   Referencia o número de comprobante o Nro. Secuencial ascendente único por archivo
-            $debito["c_alta"] .                                                                 // FechaOrigen        29      8      N       AAAAMMDD                    Fecha de origen o vencimiento del débito
-            "0005" .                                                                            // CodTransacción     37      4      AN                  "0005"          Código de Transacción – Constante 0005
-            str_pad(number_format($debito["c_monto"], 2, "", ""), 15, "0", STR_PAD_LEFT) .      // Importe            41     15      N       n13d2                       Importe (13 dígitos enteros y 2 decimales con ceros a izquierda)
-            str_pad($debito["s_documento"], 15, "0", STR_PAD_LEFT) .                            // Identificador      56     15      AN                                  Identificador del débito
-            ($debito["primer_debito"] == "1" ? "E" : " ") .                                     // CodAlta            71      1      AN                  "E" o " "       Código de alta de Identificador. Constante “E” si es el primer débito informado, si no espacios.
-            "  " .                                                                              // Estado             72      2      AN                  "  "            Estado del registro – Constante 2 espacios
-            str_pad("", 26) .                                                                   // Reservado2         74     26      AN                                  Constante 26 espacios
-            "*" .                                                                               // MarcaFin          100      1      AN                  "*"             Marca de fin de registro – Constante “*”
+            "1" .                                                                                   // TipoRegistro        1      1      AN                  "1"             Tipo de Registro (Fijo "1")
+            str_pad($debito["sc_debito_tarjeta"], 16) .                                             // NroTarjeta          2     16      AN                                  Número de Tarjeta
+            "   " .                                                                                 // Reservado1         18      3      AN                  "   "           Constante 3 espacios
+            str_pad($NroSecuencia, 8, "0", STR_PAD_LEFT) .                                          // Referencia         21      8      N                                   Referencia o número de comprobante o Nro. Secuencial ascendente único por archivo
+            // $debito["c_alta"] .
+            "20" . substr($debito["c_periodo"], 3, 2) . substr($debito["c_periodo"], 0, 2) . "01" . // FechaOrigen        29      8      N       AAAAMMDD                    Fecha de origen o vencimiento del débito
+            "0005" .                                                                                // CodTransacción     37      4      AN                  "0005"          Código de Transacción – Constante 0005
+            str_pad(number_format($debito["c_monto"], 2, "", ""), 15, "0", STR_PAD_LEFT) .          // Importe            41     15      N       n13d2                       Importe (13 dígitos enteros y 2 decimales con ceros a izquierda)
+            str_pad($debito["s_documento"], 15, "0", STR_PAD_LEFT) .                                // Identificador      56     15      AN                                  Identificador del débito
+            ($debito["primer_debito"] == "1" ? "E" : " ") .                                         // CodAlta            71      1      AN                  "E" o " "       Código de alta de Identificador. Constante “E” si es el primer débito informado, si no espacios.
+            "  " .                                                                                  // Estado             72      2      AN                  "  "            Estado del registro – Constante 2 espacios
+            str_pad("", 26) .                                                                       // Reservado2         74     26      AN                                  Constante 26 espacios
+            "*" .                                                                                   // MarcaFin          100      1      AN                  "*"             Marca de fin de registro – Constante “*”
             PHP_EOL;
     }
 

@@ -188,15 +188,15 @@
     function get_logo()
     {
         include 'db.php';
+//        var_dump(get_db());die;
+//        var_dump("SELECT a.c_icon_mime, a.c_icon_data, a.c_logo_mime, a.c_logo_data FROM " . get_db() . ".club AS a WHERE a.id = 1");die;
         $logo = mysqli_fetch_array(mysqli_query($conexion, "SELECT a.c_icon_mime, a.c_icon_data, a.c_logo_mime, a.c_logo_data FROM " . get_db() . ".club AS a WHERE a.id = 1"));
         return $logo;
     }
 
     function get_db()
     {
-
         return $_COOKIE['SP_DB'];
-
     }
 
     function get_coordenadas_club()
@@ -349,18 +349,26 @@
     function get_select_tarjetas($tarjeta)
     {
         include 'db.php';
+        $base = get_db();
+        // $sql = "SELECT id, t_nombre, t_forpag FROM " . get_db() . ".tarjeta ORDER BY id ASC";
+        $sql = "SELECT id, t_nombre, t_forpag FROM " . get_db() . ".tarjeta WHERE t_estado = 'HABILITADO' ORDER BY id ASC";
+
+        
         $options = "";
-        $r = mysqli_query($conexion, "SELECT id, t_nombre FROM " . get_db() . ".tarjeta ORDER BY id ASC");
+        $r = mysqli_query($conexion, $sql);
         while ($f = mysqli_fetch_array($r)) {
+            $options .= "<option class='" . $f[2] . "'" . ($tarjeta != 0 && $tarjeta == $f[0] ? " selected" : "") . " value='" . $f[0] . "'>" . $f[1] . "</option>";
+/*
             if ($tarjeta != 0) {
                 if ($tarjeta == $f[0]) {
-                    $options .= "<option class='" . $f[0] . "' selected value='" . $f[0] . "'>" . $f[1] . "</option>";
+                    $options .= "<option class='" . $f[2] . "' selected value='" . $f[0] . "'>" . $f[1] . "</option>";
                 } else {
-                    $options .= "<option class='" . $f[0] . "' value='" . $f[0] . "'>" . $f[1] . "</option>";
+                    $options .= "<option class='" . $f[2] . "' value='" . $f[0] . "'>" . $f[1] . "</option>";
                 }
             } else {
-                $options .= "<option class='" . $f[0] . "' value='" . $f[0] . "'>" . $f[1] . "</option>";
+                $options .= "<option class='" . $f[2] . "' value='" . $f[0] . "'>" . $f[1] . "</option>";
             }
+*/
         }
         return $options;
     }
@@ -1811,7 +1819,7 @@
     function get_lista_cuotas_a_debitar($forpag, $tarjeta) {
         include 'db.php';
         $base = get_db();
-        $sql = "SELECT cuota.id, DATE_FORMAT(cuota.c_periodo, '%m/%y') as c_periodo, cuota.c_socio, cuota.c_monto, DATE_FORMAT(cuota.c_alta, '%Y%m%d') as c_alta,
+        $sql = "SELECT cuota.id, DATE_FORMAT(cuota.c_periodo, '%m/%y') as c_periodo, cuota.c_socio, SUM(cuota.c_monto) as c_monto, DATE_FORMAT(cuota.c_alta, '%Y%m%d') as c_alta,
                        socio.id as s_id, socio.s_documento,
                        forpag.forpag_nombre,
                        soccat.sc_debito_tarjeta, soccat.sc_debito_vencimiento,
@@ -1826,7 +1834,8 @@
                 INNER JOIN {$base}.socio_categoria AS soccat ON cuota.c_sc = soccat.id AND soccat.sc_estado = 'HABILITADO'
                 INNER JOIN {$base}.tarjeta AS tarje ON tarje.id = soccat.sc_tarjeta AND tarje.id = {$tarjeta} AND tarje.t_estado = 'HABILITADO'
                 INNER JOIN {$base}.subcategoria AS subcat ON soccat.sc_subcategoria = subcat.id AND subcat.sc_estado = 'HABILITADO'
-                INNER JOIN {$base}.categoria AS categ ON categ.id = subcat.sc_categoria";
+                INNER JOIN {$base}.categoria AS categ ON categ.id = subcat.sc_categoria
+                GROUP BY soccat.sc_debito_tarjeta";
         $result = mysqli_query($conexion, $sql);
         return $result;
     }
@@ -1881,6 +1890,7 @@
                 AND cuota.c_socio = {$socio}
                 AND DATE_FORMAT(cuota.c_periodo, '%Y') = {$ano_debito}
                 AND DATE_FORMAT(cuota.c_periodo, '%m') = {$mes_debito}
+                AND cuota.c_anulada = 'NO'
                 AND cuota.c_monto = {$monto}";
         $result = mysqli_query($conexion, $sql);
         if ($result && (mysqli_num_rows($result) == 1)) {
@@ -1891,11 +1901,28 @@
         }
     }
 
+    function obtener_cuotas_debito($tarjeta, $socio, $ano_debito, $mes_debito, $monto) {
+        // Devuelve los id de las cuotas que cumplen la condición
+        include 'db.php';
+        $base = get_db();
+        $sql = "SELECT cuota.id
+                FROM {$base}.cuota AS cuota 
+                INNER JOIN {$base}.socio AS socio ON socio.id = {$socio} AND socio.id = cuota.c_socio AND cuota.c_monto > 0 AND cuota.c_anulada = 'NO' AND
+                                                     DATE_FORMAT(cuota.c_periodo, '%Y') = '{$ano_debito}' AND DATE_FORMAT(cuota.c_periodo, '%m') = '{$mes_debito}'
+                INNER JOIN {$base}.socio_categoria AS soccat ON cuota.c_sc = soccat.id AND soccat.sc_debito_tarjeta = '{$tarjeta}' AND soccat.sc_estado = 'HABILITADO'
+                INNER JOIN {$base}.tarjeta AS tarje ON tarje.id = soccat.sc_tarjeta AND tarje.t_estado = 'HABILITADO'
+                INNER JOIN {$base}.subcategoria AS subcat ON soccat.sc_subcategoria = subcat.id AND subcat.sc_estado = 'HABILITADO'
+                INNER JOIN {$base}.categoria AS categ ON categ.id = subcat.sc_categoria";
+        $result = mysqli_query($conexion, $sql);
+        return $result;
+    }
+
     function agregar_comprobante($id_cuota, $identificador) {
         include 'db.php';
         $base = get_db();
+        $date = date("Ymd");
         $sql = "UPDATE {$base}.cuota
-                SET c_comprobante = '{$identificador}'
+                SET c_comprobante = '{$identificador}{$date}'
                 WHERE id = {$id_cuota}";
         return mysqli_query($conexion, $sql);
     }
@@ -1941,7 +1968,7 @@
             ["FechaPresentacion"]=> string(6) "090821"  */
 
         /*  TABLA RECHAZOS
-            r_lote Índice 	        int(11)
+            r_lote       	        int(11)
             r_socio 	            int(11)
             tarjeta 	            varchar(100)
             fecha_origen 	        datetime
@@ -1951,21 +1978,25 @@
             descripcion_rechazo     varchar(255)    */
         $socio = $devolucion["Socio"];
         $nro_tarjeta = $devolucion["NroTarjeta"];
-        $ano_debito = $devolucion["PeriodoMes"];
-        $mes_debito = $devolucion["PeriodoAno"];
+        $ano_debito = $devolucion["PeriodoAno"];
+        $mes_debito = $devolucion["PeriodoMes"];
+        $fecha_origen = $devolucion["FechaOrigen"];
         $monto = $devolucion["Monto"] / 100;
+        $identificador = $devolucion["Identificador"];
         $cod_rechazo = $devolucion["CodRechazo"];
         $descripcion_rechazo = $devolucion["DescripcionRechazo"];
-        $identificador = $devolucion["Identificador"];
-        $fecha_origen = $devolucion["FechaOrigen"];
 
         try {
             socio_id_exists($socio);
             tarjeta_exists($nro_tarjeta);
-            $id_cuota = obtener_cuota_debito($nro_tarjeta, $socio, $ano_debito, $mes_debito, $monto);
-            if ($estado_movimiento == "0") {   // se debitó
-                if (!agregar_comprobante($id_cuota, $identificador)) {
-                    throw new Exception("Falló la actualización de la cuota {$id_cuota}");
+            $cuotas = obtener_cuotas_debito($nro_tarjeta, $socio, $ano_debito, $mes_debito, $monto);
+
+            if ($cod_rechazo == 0) {   // se debitó
+                while ($cuota = mysqli_fetch_array($cuotas)) {
+                    $c = $cuota['id'];
+                    if (!agregar_comprobante($c, $identificador, $socio)) {
+                        throw new Exception("Falló la actualización de la cuota {$c}");
+                    }
                 }
             }
             else {  // se rechazó

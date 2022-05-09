@@ -11,17 +11,19 @@ ALTER TABLE `primer_debito`
 
 ALTER TABLE `primer_debito`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-COMMIT;
 
 
 
 ALTER TABLE `tarjeta` ADD `t_empresa_debito` VARCHAR(80) NULL AFTER `t_forpag`;
 ALTER TABLE `tarjeta` ADD `t_DoC` CHAR(1) NOT NULL AFTER `t_empresa_debito`;
-ALTER TABLE `tarjeta` ADD `nombre_clase` VARCHAR(80) AFTER `t_DoC`;
+ALTER TABLE `tarjeta` ADD `t_nombre_clase` VARCHAR(80) NULL AFTER `t_DoC`;
 
+
+ALTER TABLE `cuota` CHANGE `c_comprobante` `c_comprobante` VARCHAR(50) NOT NULL DEFAULT '0';
 
 
 ALTER TABLE `lote` ADD `l_cant_registros` INT NOT NULL AFTER `l_archivo`, ADD `l_suma_importes` DECIMAL(10,2) NOT NULL AFTER `l_cant_registros`; 
+
 
 
 CREATE TABLE `rechazo` (
@@ -45,4 +47,36 @@ ALTER TABLE `rechazo`
 
 ALTER TABLE `rechazo`
   ADD CONSTRAINT `fk_rechazo_lote` FOREIGN KEY (`r_lote`) REFERENCES `lote` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-COMMIT;
+
+
+VALORES
+=======
+
+forpag
+======
+Cambiar "DEBITO AUTOMATICO TARJETA" por "DEBITO AUTOMATICO TARJETA FISERV"
+Cambiar "DEBITO AUTOMATICO DEBITO" por ""DEBITO AUTOMATICO CBU"
+Agregar 7 - "DEBITO AUTOMATICO TARJETA PRISMA" - "S"
+
+tarjeta
+=======
+id	t_nombre	t_establecimiento	t_forpag	t_empresa_debito	t_DoC	t_nombre_clase	t_estado 	
+1 	SIN TARJETA 	0 			1 		NULL 			X 			HABILITADO
+2 	VISA 		37356830 		2 		FISERV 			C 	fiserv 		HABILITADO
+3 	MASTERCARD 	35689874 		2 		FISERV 			D 	fiserv 		HABILITADO
+4 	AMEX 		14736326 		2 		FISERV 			C 			DESHABILITADO
+8 	VISA 		14736326 		7 		PRISMA 			C 	visa 		HABILITADO
+
+
+
+CARPETAS DISK
+=============
+disk
+  fixlan_sportapp_sanluis
+    files
+      FISERV
+        MASTERCARD
+        VISA
+      PRISMA
+        VISA CREDITO
+        VISA DEBITO
