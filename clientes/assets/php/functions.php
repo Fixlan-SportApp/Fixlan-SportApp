@@ -214,7 +214,7 @@
                        s.s_documento as documento, s.meses_adeudados, s.monto_adeudado,
                        e.e_nombre as estado
                 FROM " . get_db() . ".socio s
-                    INNER JOIN estado e on e.id = s.s_estado
+                    INNER JOIN " . get_db() . ".estado e on e.id = s.s_estado
                 WHERE s_documento = '" . $dni . "'";
         $socio = mysqli_fetch_array(mysqli_query($conexion, $sql), MYSQLI_ASSOC);
         return $socio;

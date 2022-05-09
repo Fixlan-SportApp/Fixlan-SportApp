@@ -60,7 +60,7 @@
         {
             $dni = $_GET['dni'];
             
-            if(!empty(check_is_socio($dni))){
+            if(!empty($dni) && !empty(check_is_socio($dni))){
                 $socio = get_socio_by_dni($dni);
                 $socio['qr'] = QR::generate($dni);
                 $img_socio = get_img_socio($socio['id']);
