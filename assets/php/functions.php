@@ -1819,6 +1819,7 @@
     function get_lista_cuotas_a_debitar($forpag, $tarjeta) {
         include 'db.php';
         $base = get_db();
+        /*
         $sql = "SELECT cuota.id, DATE_FORMAT(cuota.c_periodo, '%m/%y') as c_periodo, cuota.c_socio, SUM(cuota.c_monto) as c_monto, DATE_FORMAT(cuota.c_alta, '%Y%m%d') as c_alta,
                        socio.id as s_id, socio.s_documento,
                        forpag.forpag_nombre,
@@ -1836,6 +1837,22 @@
                 INNER JOIN {$base}.subcategoria AS subcat ON soccat.sc_subcategoria = subcat.id AND subcat.sc_estado = 'HABILITADO'
                 INNER JOIN {$base}.categoria AS categ ON categ.id = subcat.sc_categoria
                 GROUP BY soccat.sc_debito_tarjeta";
+        */
+        $sql = "SELECT DATE_FORMAT(cuota.c_periodo, '%m/%y') as c_periodo, cuota.c_socio, SUM(cuota.c_monto) as c_monto, DATE_FORMAT(cuota.c_alta, '%Y%m%d') as c_alta,
+                       socio.id as s_id, socio.s_documento,
+                       forpag.forpag_nombre,
+                       soccat.sc_debito_tarjeta, 
+                       tarje.t_nombre, tarje.t_establecimiento, tarje.t_DoC,
+                       CASE WHEN EXISTS(SELECT * FROM {$base}.primer_debito AS p WHERE p.NroTarjeta = soccat.sc_debito_tarjeta) THEN FALSE ELSE TRUE END as primer_debito
+                FROM {$base}.cuota AS cuota 
+                INNER JOIN {$base}.socio AS socio ON socio.id = cuota.c_socio AND cuota.c_monto > 0 AND cuota.c_anulada = 'NO'
+                                                     AND YEAR(cuota.c_periodo) = YEAR(CURDATE()) AND MONTH(cuota.c_periodo) = MONTH(CURDATE())
+                INNER JOIN {$base}.forpag AS forpag ON cuota.c_forpag = forpag.id AND forpag.id = {$forpag} AND forpag.forpag_debito = 'S'
+                INNER JOIN {$base}.socio_categoria AS soccat ON cuota.c_sc = soccat.id AND soccat.sc_estado = 'HABILITADO'
+                INNER JOIN {$base}.tarjeta AS tarje ON tarje.id = soccat.sc_tarjeta AND tarje.id = {$tarjeta} AND tarje.t_estado = 'HABILITADO'
+                INNER JOIN {$base}.subcategoria AS subcat ON soccat.sc_subcategoria = subcat.id AND subcat.sc_estado = 'HABILITADO'
+                INNER JOIN {$base}.categoria AS categ ON categ.id = subcat.sc_categoria
+                GROUP BY {$base}.soccat.sc_debito_tarjeta, cuota.c_periodo, cuota.c_socio, cuota.c_alta";
         $result = mysqli_query($conexion, $sql);
         return $result;
     }
